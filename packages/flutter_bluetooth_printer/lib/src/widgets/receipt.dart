@@ -95,6 +95,7 @@ class ReceiptState extends State<Receipt> {
   @override
   void dispose() {
     controller.removeListener(_listener);
+
     super.dispose();
   }
 

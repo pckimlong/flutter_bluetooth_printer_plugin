@@ -113,7 +113,9 @@ class FlutterBluetoothPrinter {
 
     img.Image src = baseImage;
 
-    src = img.smooth(src, weight: 1.5);
+    // This really slows down the process, disable it for now
+    // src = img.smooth(src, weight: 1.5);
+
     for (int y = 0; y < src.height; ++y) {
       for (int x = 0; x < src.width; ++x) {
         final pixel = src.getPixel(x, y);
@@ -126,11 +128,12 @@ class FlutterBluetoothPrinter {
       }
     }
 
-    src = img.pixelate(
-      src,
-      size: (src.width / paperSize.width).round(),
-      mode: img.PixelateMode.average,
-    );
+    // This also slows down the process, disable it for now
+    // src = img.pixelate(
+    //   src,
+    //   size: (src.width / paperSize.width).round(),
+    //   mode: img.PixelateMode.average,
+    // );
 
     final dotsPerLine = paperSize.width;
     if (src.width > dotsPerLine) {

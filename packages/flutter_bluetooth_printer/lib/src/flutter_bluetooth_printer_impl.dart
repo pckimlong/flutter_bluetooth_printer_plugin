@@ -58,12 +58,6 @@ class FlutterBluetoothPrinter {
       src: image,
     );
 
-    // save file
-    final dir = await getDownloadsDirectory();
-    final file = File('${dir!.path}/${DateTime.now().millisecondsSinceEpoch}.jpg');
-    await file.writeAsBytes(img.encodeJpg(optimizedImage));
-    log('Saved to ${file.path}');
-
     final profile = await CapabilityProfile.load();
     final generator = Generator(
       paperSize,

@@ -36,6 +36,7 @@ class ReceiptController with ChangeNotifier {
     int linesAfter = 0,
     bool useImageRaster = false,
     bool keepConnected = false,
+    int quality = 4,
   }) {
     return _state.print(
       address: address,
@@ -43,6 +44,7 @@ class ReceiptController with ChangeNotifier {
       addFeeds: linesAfter,
       useImageRaster: useImageRaster,
       keepConnected: keepConnected,
+      quality: quality,
     );
   }
 }

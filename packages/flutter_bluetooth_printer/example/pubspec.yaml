@@ -25,6 +25,7 @@ dependency_overrides:
 dependencies:
   flutter:
     sdk: flutter
+  
 
   flutter_bluetooth_printer:
     # When depending on this package from a real application you should use:

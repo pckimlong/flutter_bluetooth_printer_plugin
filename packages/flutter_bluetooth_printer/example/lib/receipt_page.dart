@@ -20,8 +20,7 @@ class _ReceiptPageState extends State<ReceiptPage> {
         actions: [
           IconButton(
             onPressed: () async {
-              final selected =
-                  await FlutterBluetoothPrinter.selectDevice(context);
+              final selected = await FlutterBluetoothPrinter.selectDevice(context);
               if (selected != null) {
                 setState(() {
                   address = selected.address;
@@ -107,10 +106,10 @@ class _ReceiptPageState extends State<ReceiptPage> {
                       ],
                     ),
                     const Divider(thickness: 2),
-                    FittedBox(
+                    const FittedBox(
                       fit: BoxFit.cover,
                       child: Row(
-                        children: const [
+                        children: [
                           Text(
                             'TOTAL',
                             style: TextStyle(
@@ -161,16 +160,16 @@ class _ReceiptPageState extends State<ReceiptPage> {
                       initialValue: controller?.paperSize,
                       itemBuilder: (context) => [
                         const PopupMenuItem(
-                          child: Text('58mm'),
                           value: PaperSize.mm58,
+                          child: Text('58mm'),
                         ),
                         const PopupMenuItem(
-                          child: Text('72mm'),
                           value: PaperSize.mm72,
+                          child: Text('72mm'),
                         ),
                         const PopupMenuItem(
-                          child: Text('80mm'),
                           value: PaperSize.mm80,
+                          child: Text('80mm'),
                         ),
                       ],
                       onSelected: (value) {
@@ -186,9 +185,7 @@ class _ReceiptPageState extends State<ReceiptPage> {
                     child: ElevatedButton(
                       onPressed: () async {
                         final selectedAddress = address ??
-                            (await FlutterBluetoothPrinter.selectDevice(
-                                    context))
-                                ?.address;
+                            (await FlutterBluetoothPrinter.selectDevice(context))?.address;
 
                         if (selectedAddress != null) {
                           PrintingProgressDialog.print(

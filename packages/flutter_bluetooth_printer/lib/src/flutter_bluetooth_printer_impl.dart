@@ -12,8 +12,7 @@ class FlutterBluetoothPrinter {
 
   static Stream<DiscoveryState> _discovery() async* {
     final result = <BluetoothDevice>[];
-    await for (final state
-        in FlutterBluetoothPrinterPlatform.instance.discovery) {
+    await for (final state in FlutterBluetoothPrinterPlatform.instance.discovery) {
       if (state is BluetoothDevice) {
         result.add(state);
         yield DiscoveryResult(devices: result.toSet().toList());
@@ -47,23 +46,23 @@ class FlutterBluetoothPrinter {
 
   static Future<void> printImage({
     required String address,
-    required List<int> imageBytes,
-    required int imageWidth,
-    required int imageHeight,
+    required img.Image image,
     PaperSize paperSize = PaperSize.mm58,
     ProgressCallback? onProgress,
     int addFeeds = 0,
     bool useImageRaster = false,
     required bool keepConnected,
   }) async {
-    final bytes = await _optimizeImage(
+    final optimizedImage = await _optimizeImage(
       paperSize: paperSize,
-      src: imageBytes,
-      srcWidth: imageWidth,
-      srcHeight: imageHeight,
+      src: image,
     );
 
-    img.Image src = img.decodeJpg(bytes)!;
+    // save file
+    final dir = await getDownloadsDirectory();
+    final file = File('${dir!.path}/${DateTime.now().millisecondsSinceEpoch}.jpg');
+    await file.writeAsBytes(img.encodeJpg(optimizedImage));
+    log('Saved to ${file.path}');
 
     final profile = await CapabilityProfile.load();
     final generator = Generator(
@@ -74,13 +73,13 @@ class FlutterBluetoothPrinter {
     List<int> imageData;
     if (useImageRaster) {
       imageData = generator.imageRaster(
-        src,
+        optimizedImage,
         highDensityHorizontal: true,
         highDensityVertical: true,
         imageFn: PosImageFn.bitImageRaster,
       );
     } else {
-      imageData = generator.image(src);
+      imageData = generator.image(optimizedImage);
     }
 
     final additional = [
@@ -101,18 +100,11 @@ class FlutterBluetoothPrinter {
     );
   }
 
-  static Future<List<int>> _optimizeImage({
-    required List<int> src,
+  static Future<img.Image> _optimizeImage({
+    required img.Image src,
     required PaperSize paperSize,
-    required int srcWidth,
-    required int srcHeight,
   }) async {
-    final arg = <String, dynamic>{
-      'src': src,
-      'width': srcWidth,
-      'height': srcHeight,
-      'paperSize': paperSize,
-    };
+    final arg = <String, dynamic>{'src': src, 'paperSize': paperSize};
 
     if (kIsWeb) {
       return _blackwhiteInternal(arg);
@@ -121,60 +113,38 @@ class FlutterBluetoothPrinter {
     return compute(_blackwhiteInternal, arg);
   }
 
-  static Future<List<int>> _blackwhiteInternal(Map<String, dynamic> arg) async {
-    final srcBytes = arg['src'] as List<int>;
-    final width = arg['width'] as int;
-    final height = arg['height'] as int;
+  static Future<img.Image> _blackwhiteInternal(Map<String, dynamic> arg) async {
+    final baseImage = arg['src'] as img.Image;
     final paperSize = arg['paperSize'] as PaperSize;
 
-    img.Image src = img.Image.fromBytes(width, height, srcBytes);
-    final w = src.width;
-    final h = src.height;
+    img.Image src = baseImage;
 
-    src = img.smooth(src, 1.5);
-    final res = img.Image(w, h);
-    for (int y = 0; y < h; ++y) {
-      for (int x = 0; x < w; ++x) {
-        final idx = y * w + x;
-
-        final pixel = src[idx];
-        final r = img.getRed(pixel);
-        final b = img.getBlue(pixel);
-        final g = img.getGreen(pixel);
-
-        int c;
-        final l = img.getLuminanceRgb(r, g, b) / 255;
-        if (l > 0.8) {
-          c = img.getColor(255, 255, 255);
+    src = img.smooth(src, weight: 1.5);
+    for (int y = 0; y < src.height; ++y) {
+      for (int x = 0; x < src.width; ++x) {
+        final pixel = src.getPixel(x, y);
+        final lum = img.getLuminanceRgb(pixel.r, pixel.g, pixel.b) / 255;
+        if (lum > 0.8) {
+          src.setPixelRgb(x, y, 255, 255, 255);
         } else {
-          c = img.getColor(0, 0, 0);
+          src.setPixelRgb(x, y, 0, 0, 0);
         }
-
-        final u = BigInt.from(c).toUnsigned(32);
-        res[idx] = u.toInt();
       }
     }
 
-    src = res;
     src = img.pixelate(
       src,
-      (src.width / paperSize.width).round(),
+      size: (src.width / paperSize.width).round(),
       mode: img.PixelateMode.average,
     );
 
     final dotsPerLine = paperSize.width;
-    // make sure image not bigger than printable area
     if (src.width > dotsPerLine) {
-      double ratio = dotsPerLine / src.width;
-      int height = (src.height * ratio).ceil();
-      src = img.copyResize(
-        src,
-        width: dotsPerLine,
-        height: height,
-      );
+      final ratio = dotsPerLine / src.width;
+      final height = (src.height * ratio).ceil();
+      src = img.copyResize(src, width: dotsPerLine, height: height);
     }
-
-    return img.encodeJpg(src);
+    return src;
   }
 
   static Future<BluetoothDevice?> selectDevice(BuildContext context) async {

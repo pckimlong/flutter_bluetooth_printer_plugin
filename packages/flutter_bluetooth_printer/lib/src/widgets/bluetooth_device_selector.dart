@@ -12,8 +12,7 @@ class BluetoothDeviceSelector extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<BluetoothDeviceSelector> createState() =>
-      _BluetoothDeviceSelectorState();
+  State<BluetoothDeviceSelector> createState() => _BluetoothDeviceSelectorState();
 }
 
 class _BluetoothDeviceSelectorState extends State<BluetoothDeviceSelector> {

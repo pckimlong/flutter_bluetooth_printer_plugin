@@ -149,8 +149,8 @@ class ReceiptState extends State<Receipt> {
     int addFeeds = 0,
     bool useImageRaster = false,
     bool keepConnected = false,
+    int quality = 4,
   }) async {
-    var quality = 4;
     final boundary = _localKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
     final uiImage = await boundary.toImage(pixelRatio: quality.toDouble());
     final byteData = await uiImage.toByteData(format: ImageByteFormat.png);

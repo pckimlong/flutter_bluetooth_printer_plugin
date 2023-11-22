@@ -1,8 +1,6 @@
 library flutter_bluetooth_printer;
 
 import 'dart:async';
-import 'dart:developer';
-import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
